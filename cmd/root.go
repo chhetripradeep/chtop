@@ -54,6 +54,6 @@ func initConfig() {
 
 	err := viper.ReadInConfig()
 	if err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+		fmt.Fprintln(os.Stderr, "using config file:", viper.ConfigFileUsed())
 	}
 }
