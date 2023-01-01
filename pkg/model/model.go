@@ -1,7 +1,12 @@
 package model
 
 import (
+	"bufio"
+	"errors"
 	"fmt"
+	"io"
+	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -10,7 +15,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/guptarohit/asciigraph"
 
-	"github.com/chhetripradeep/chtop/pkg/client"
+	"github.com/chhetripradeep/chtop/pkg/metric"
 	"github.com/chhetripradeep/chtop/pkg/theme"
 )
 
@@ -18,39 +23,59 @@ const (
 	defaultFps = time.Duration(30)
 )
 
-type Metric struct {
-	Name       string
-	Latest     float64
-	Datapoints []float64
-}
-
-func NewMetric(name string) Metric {
-	return Metric{
-		Name: name,
-	}
-}
-
-func (m *Metric) Update(value float64) {
-	m.Latest = value
-	m.Datapoints = append(m.Datapoints, value)
-}
-
-var metrics = []Metric{
-	NewMetric("ClickHouseProfileEvents_Query"),
-	NewMetric("ClickHouseProfileEvents_SelectQuery"),
-	NewMetric("ClickHouseProfileEvents_InsertQuery"),
-	NewMetric("ClickHouseMetrics_PartsActive"),
-	NewMetric("ClickHouseMetrics_TCPConnection"),
-}
-
 type Model struct {
-	Client *client.Client
-	Theme  *theme.Theme
+	Endpoint string
+	Metrics  metric.Metrics
+	Theme    *theme.Theme
+	Err      error
+}
+
+type statusMsg int
+
+type errMsg struct {
+	err error
+}
+
+func (e errMsg) Error() string {
+	return e.err.Error()
+}
+
+func check(url string) tea.Cmd {
+	return func() tea.Msg {
+		resp, err := http.Get(url)
+		if err != nil {
+			return errMsg{err}
+		}
+		defer resp.Body.Close()
+		return statusMsg(resp.StatusCode)
+	}
 }
 
 // Init inits the bubbletea model for use
 func (m Model) Init() tea.Cmd {
-	return nil
+	return check(m.Endpoint)
+}
+
+func (m Model) Query(metric string) (*string, error) {
+	resp, err := http.Get(m.Endpoint)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	scanner := bufio.NewScanner(strings.NewReader(string(body)))
+	for scanner.Scan() {
+		if strings.HasPrefix(scanner.Text(), metric) {
+			val := strings.TrimLeft(scanner.Text(), metric)
+			return &val, nil
+		}
+	}
+	return nil, errors.New("unable to find the requested metric")
 }
 
 // Update updates the bubbletea model
@@ -65,6 +90,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		default:
 			return m, nil
 		}
+	case errMsg:
+		m.Err = msg
+		return m, tea.Quit
 	default:
 		return m, tick()
 	}
@@ -73,21 +101,35 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // View shows the current state of the chtop
 func (m Model) View() string {
 	var plot string
-	for i := range metrics {
-		value, _ := m.Client.GetMetric(metrics[i].Name)
-		floatValue, _ := strconv.ParseFloat(strings.TrimSpace(*value), 64)
-		metrics[i].Update(floatValue)
+	for i := range m.Metrics {
+		value, err := m.Query(m.Metrics[i].Name)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "unable to query metrics endpoint:", m.Endpoint, "for metric:", m.Metrics[i].Name)
+			continue
+		}
+
+		floatValue, err := strconv.ParseFloat(strings.TrimSpace(*value), 64)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "unable to parse value for metric:", m.Metrics[i].Name)
+			continue
+		}
+
+		m.Metrics[i].Update(floatValue)
 		graph := asciigraph.Plot(
-			metrics[i].Datapoints,
+			m.Metrics[i].Datapoints,
 			asciigraph.Height(m.Theme.Graph.Height),
 			asciigraph.Width(m.Theme.Graph.Width),
 			asciigraph.Precision(m.Theme.Graph.Precision),
 			asciigraph.SeriesColors(m.Theme.GraphColor()),
 		)
+
 		plot += fmt.Sprintf("\n\n")
-		plot += fmt.Sprintf(setTitle(metrics[i].Name).String())
-		plot += fmt.Sprintf("\n\n%s\n\n", graph)
-		plot += fmt.Sprintf(setFooter(fmt.Sprintf("Current Value: %.2f", metrics[i].Latest)).String())
+		plot += lipgloss.JoinVertical(
+			lipgloss.Top,
+			setTitle(m.Metrics[i].Name).String(),
+			graph,
+			setFooter(fmt.Sprintf("Current Value: %.2f\n\n", m.Metrics[i].Latest)).String(),
+		)
 	}
 	return plot
 }
