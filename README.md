@@ -41,6 +41,12 @@ theme:
     color: red
     height: 10
     precision: 1
+```
+## Metrics
+
+You can configure the metrics to plot (default path: $HOME/.chtop.yaml)
+
+```
 clickhousemetrics:
   metrics:
     - name: ClickHouseProfileEvents_Query
@@ -61,7 +67,6 @@ This tool is built using [BubbleTea](https://github.com/charmbracelet/bubbletea)
 
 ## Todos
 
-- Make metrics configurable from a configuration file.
 - Allow to run CH queries to gather datapoints.
 - Introduce more panel types.
 - Allow to monitor CH clusters.
