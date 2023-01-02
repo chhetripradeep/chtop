@@ -41,6 +41,14 @@ theme:
     color: red
     height: 10
     precision: 1
+clickhousemetrics:
+  metrics:
+    - name: ClickHouseProfileEvents_Query
+    - name: ClickHouseProfileEvents_SelectQuery
+    - name: ClickHouseProfileEvents_InsertQuery
+    - name: ClickHouseMetrics_PartsActive
+    - name: ClickHouseMetrics_TCPConnection
+    - name: ClickHouseProfileEvents_FileOpen
 ```
 
 ## Sample Output

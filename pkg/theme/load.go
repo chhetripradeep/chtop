@@ -4,7 +4,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func LoadViper(v *viper.Viper, first bool) (*Theme, error) {
+func LoadTheme(v *viper.Viper, first bool) (*Theme, error) {
 	theme := DefaultTheme()
 	v.UnmarshalKey("theme", theme)
 	if !first || theme.File == "" {
@@ -17,5 +17,5 @@ func LoadViper(v *viper.Viper, first bool) (*Theme, error) {
 	if err != nil {
 		return theme, err
 	}
-	return LoadViper(v, false)
+	return LoadTheme(v, false)
 }
