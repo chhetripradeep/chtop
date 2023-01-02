@@ -1,0 +1,13 @@
+theme:
+  graph:
+    color: red
+    height: 4
+    precision: 1
+clickhousemetrics:
+  metrics:
+    - name: ClickHouseProfileEvents_Query
+    - name: ClickHouseProfileEvents_SelectQuery
+    - name: ClickHouseProfileEvents_InsertQuery
+    - name: ClickHouseMetrics_PartsActive
+    - name: ClickHouseMetrics_TCPConnection
+    - name: ClickHouseProfileEvents_FileOpen

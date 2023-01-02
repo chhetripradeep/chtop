@@ -24,10 +24,10 @@ const (
 )
 
 type Model struct {
-	Endpoint string
-	Metrics  metric.Metrics
-	Theme    *theme.Theme
-	Err      error
+	ClickHouseMetrics metric.ClickHouseMetrics
+	Endpoint          string
+	Theme             *theme.Theme
+	Err               error
 }
 
 type statusMsg int
@@ -101,22 +101,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // View shows the current state of the chtop
 func (m Model) View() string {
 	var plot string
-	for i := range m.Metrics {
-		value, err := m.Query(m.Metrics[i].Name)
+	for i := range m.ClickHouseMetrics.Metrics {
+		value, err := m.Query(m.ClickHouseMetrics.Metrics[i].Name)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "unable to query metrics endpoint:", m.Endpoint, "for metric:", m.Metrics[i].Name)
+			fmt.Fprintln(os.Stderr, "unable to query metrics endpoint:", m.Endpoint, "for metric:", m.ClickHouseMetrics.Metrics[i].Name)
 			continue
 		}
 
 		floatValue, err := strconv.ParseFloat(strings.TrimSpace(*value), 64)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "unable to parse value for metric:", m.Metrics[i].Name)
+			fmt.Fprintln(os.Stderr, "unable to parse value for metric:", m.ClickHouseMetrics.Metrics[i].Name)
 			continue
 		}
 
-		m.Metrics[i].Update(floatValue)
+		m.ClickHouseMetrics.Metrics[i].Update(floatValue)
 		graph := asciigraph.Plot(
-			m.Metrics[i].Datapoints,
+			m.ClickHouseMetrics.Metrics[i].Datapoints,
 			asciigraph.Height(m.Theme.Graph.Height),
 			asciigraph.Width(m.Theme.Graph.Width),
 			asciigraph.Precision(m.Theme.Graph.Precision),
@@ -126,9 +126,9 @@ func (m Model) View() string {
 		plot += fmt.Sprintf("\n\n")
 		plot += lipgloss.JoinVertical(
 			lipgloss.Top,
-			setTitle(m.Metrics[i].Name).String(),
+			setTitle(m.ClickHouseMetrics.Metrics[i].Name).String(),
 			graph,
-			setFooter(fmt.Sprintf("Current Value: %.2f\n\n", m.Metrics[i].Latest)).String(),
+			setFooter(fmt.Sprintf("Current Value: %.2f\n\n", m.ClickHouseMetrics.Metrics[i].Latest)).String(),
 		)
 	}
 	return plot
