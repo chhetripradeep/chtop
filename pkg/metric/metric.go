@@ -19,6 +19,7 @@ func DefaultClickHouseMetrics() ClickHouseMetrics {
 
 type Metric struct {
 	Name       string
+	Alias      string
 	Latest     float64
 	Datapoints []float64
 }

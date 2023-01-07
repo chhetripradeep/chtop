@@ -163,7 +163,7 @@ func (m Model) View() string {
 
 		plot += lipgloss.JoinVertical(
 			lipgloss.Top,
-			setTitle(m.ClickHouseMetrics.Metrics[i].Name).String(),
+			setTitle(m.ClickHouseMetrics.Metrics[i].Alias).String(),
 			graph,
 			setFooter(fmt.Sprintf("Current Value: %.2f\n\n", m.ClickHouseMetrics.Metrics[i].Latest)).String(),
 		)
