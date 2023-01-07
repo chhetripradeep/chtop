@@ -25,3 +25,8 @@ install:
 install-tools:
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+.PHONY: upgrade-deps
+upgrade-deps:
+	go get -u ./...
+	go mod tidy
