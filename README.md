@@ -25,10 +25,24 @@ make sure that you have enabled prometheus exporter endpoint for ClickHouse.
     </prometheus>
 </clickhouse>
 ```
-Run chtop pointing to prometheus stats endpoint of ClickHouse.
 
 ```
-❯ chtop --url http://localhost:9363/metrics
+❯ chtop --help
+Monitor your ClickHouse clusters without ever leaving your terminal
+
+Usage:
+  chtop [flags]
+
+Flags:
+      --config string        config file (default: $HOME/.chtop.yaml)
+  -h, --help                 help for chtop
+      --metrics-url string   clickhouse url for metrics in promql format
+      --queries-url string   clickhouse url for running clickhouse queries
+```
+
+Run chtop pointing to prometheus stats endpoint & http endpoint of ClickHouse.
+```
+❯ chtop --metrics-url http://localhost:9363/metrics --queries-url http://localhost:8123
 ```
 
 ## Themes
@@ -49,12 +63,26 @@ You can configure the metrics to plot (default path: $HOME/.chtop.yaml)
 ```
 clickhousemetrics:
   metrics:
-    - name: ClickHouseProfileEvents_Query
-    - name: ClickHouseProfileEvents_SelectQuery
-    - name: ClickHouseProfileEvents_InsertQuery
-    - name: ClickHouseMetrics_PartsActive
-    - name: ClickHouseMetrics_TCPConnection
-    - name: ClickHouseProfileEvents_FileOpen
+    - alias: Total Queries
+      name: ClickHouseProfileEvents_Query
+    - alias: Total Select Queries
+      name: ClickHouseProfileEvents_SelectQuery
+    - alias: Total Insert Queries
+      name: ClickHouseProfileEvents_InsertQuery
+    - alias: Number of Active Parts
+      name: ClickHouseMetrics_PartsActive
+    - alias: Number of TCP Connections
+      name: ClickHouseMetrics_TCPConnection
+    - alias: Number of Open File Descriptors
+      name: ClickHouseProfileEvents_FileOpen
+```
+
+You can configure to run sql queries to populate metrics to plot (default path: $HOME/.chtop.yaml)
+```
+clickhousequeries:
+  queries:
+    - name: Number of Running Queries
+      sql: "select count(*) from system.processes"
 ```
 
 ## Sample Output

@@ -2,6 +2,7 @@ package chtop
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/chhetripradeep/chtop/pkg/query"
 	"github.com/spf13/viper"
 
 	"github.com/chhetripradeep/chtop/pkg/metric"
@@ -9,7 +10,7 @@ import (
 	"github.com/chhetripradeep/chtop/pkg/theme"
 )
 
-func Run(url string) error {
+func Run(metricsUrl, queriesUrl string) error {
 	currentTheme, err := theme.LoadTheme(viper.GetViper(), true)
 	if err != nil {
 		return err
@@ -20,9 +21,16 @@ func Run(url string) error {
 		return err
 	}
 
+	currentQueries, err := query.LoadQueries(viper.GetViper(), true)
+	if err != nil {
+		return err
+	}
+
 	m := model.Model{
-		Endpoint:          url,
+		MetricsEndpoint:   metricsUrl,
+		QueriesEndpoint:   queriesUrl,
 		ClickHouseMetrics: currentMetrics,
+		ClickHouseQueries: currentQueries,
 		Theme:             currentTheme,
 	}
 

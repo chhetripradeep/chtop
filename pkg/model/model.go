@@ -11,11 +11,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ClickHouse/clickhouse-go/v2"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/guptarohit/asciigraph"
 
 	"github.com/chhetripradeep/chtop/pkg/metric"
+	"github.com/chhetripradeep/chtop/pkg/query"
 	"github.com/chhetripradeep/chtop/pkg/theme"
 )
 
@@ -25,9 +27,11 @@ const (
 
 type Model struct {
 	ClickHouseMetrics metric.ClickHouseMetrics
-	Endpoint          string
+	ClickHouseQueries query.ClickHouseQueries
+	Error             error
+	MetricsEndpoint   string
+	QueriesEndpoint   string
 	Theme             *theme.Theme
-	Err               error
 }
 
 type statusMsg int
@@ -53,11 +57,13 @@ func check(url string) tea.Cmd {
 
 // Init inits the bubbletea model for use
 func (m Model) Init() tea.Cmd {
-	return check(m.Endpoint)
+	return check(m.MetricsEndpoint)
 }
 
+// Query hits the prometheus exporter endpoint of clickhouse
+// and returns string containing the metric name and value
 func (m Model) Query(metric string) (*string, error) {
-	resp, err := http.Get(m.Endpoint)
+	resp, err := http.Get(m.MetricsEndpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -78,6 +84,38 @@ func (m Model) Query(metric string) (*string, error) {
 	return nil, errors.New("unable to find the requested metric")
 }
 
+// Execute runs a clickhouse query and returns the response
+func (m Model) Execute(sql string) (*string, error) {
+	conn := clickhouse.OpenDB(&clickhouse.Options{
+		Addr: []string{"127.0.0.1:9000"},
+		Auth: clickhouse.Auth{
+			Database: "system",
+			Username: "default",
+			Password: "",
+		},
+		Settings: clickhouse.Settings{
+			"max_execution_time": 30,
+		},
+		DialTimeout: 5 * time.Second,
+	})
+	defer conn.Close()
+
+	rows, err := conn.Query(sql)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var val string
+	for rows.Next() {
+		err = rows.Scan(&val)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &val, nil
+}
+
 // Update updates the bubbletea model
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
@@ -91,7 +129,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 	case errMsg:
-		m.Err = msg
+		m.Error = msg
 		return m, tea.Quit
 	default:
 		return m, tick()
@@ -104,7 +142,7 @@ func (m Model) View() string {
 	for i := range m.ClickHouseMetrics.Metrics {
 		value, err := m.Query(m.ClickHouseMetrics.Metrics[i].Name)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "unable to query metrics endpoint:", m.Endpoint, "for metric:", m.ClickHouseMetrics.Metrics[i].Name)
+			fmt.Fprintln(os.Stderr, "unable to query metrics endpoint:", m.MetricsEndpoint, "for metric:", m.ClickHouseMetrics.Metrics[i].Name)
 			continue
 		}
 
@@ -125,9 +163,40 @@ func (m Model) View() string {
 
 		plot += lipgloss.JoinVertical(
 			lipgloss.Top,
-			setTitle(m.ClickHouseMetrics.Metrics[i].Name).String(),
+			setTitle(m.ClickHouseMetrics.Metrics[i].Alias).String(),
 			graph,
 			setFooter(fmt.Sprintf("Current Value: %.2f\n\n", m.ClickHouseMetrics.Metrics[i].Latest)).String(),
+		)
+		plot += "\n\n"
+	}
+
+	for i := range m.ClickHouseQueries.Queries {
+		value, err := m.Execute(m.ClickHouseQueries.Queries[i].Sql)
+		fmt.Fprintf(os.Stderr, *value)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "unable to execute query:", m.ClickHouseQueries.Queries[i].Name, "at endpoint:", m.QueriesEndpoint)
+		}
+
+		floatValue, err := strconv.ParseFloat(strings.TrimSpace(*value), 64)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "unable to parse value for metric:", m.ClickHouseQueries.Queries[i].Name)
+			continue
+		}
+
+		m.ClickHouseQueries.Queries[i].Update(floatValue)
+		graph := asciigraph.Plot(
+			m.ClickHouseQueries.Queries[i].Datapoints,
+			asciigraph.Height(m.Theme.Graph.Height),
+			asciigraph.Width(m.Theme.Graph.Width),
+			asciigraph.Precision(m.Theme.Graph.Precision),
+			asciigraph.SeriesColors(m.Theme.GraphColor()),
+		)
+
+		plot += lipgloss.JoinVertical(
+			lipgloss.Top,
+			setTitle(m.ClickHouseQueries.Queries[i].Name).String(),
+			graph,
+			setFooter(fmt.Sprintf("Current Value: %.2f\n\n", m.ClickHouseQueries.Queries[i].Latest)).String(),
 		)
 		plot += "\n"
 	}
