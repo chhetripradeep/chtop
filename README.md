@@ -25,10 +25,24 @@ make sure that you have enabled prometheus exporter endpoint for ClickHouse.
     </prometheus>
 </clickhouse>
 ```
-Run chtop pointing to prometheus stats endpoint of ClickHouse.
 
 ```
-❯ chtop --url http://localhost:9363/metrics
+❯ chtop --help
+Monitor your ClickHouse clusters without ever leaving your terminal
+
+Usage:
+  chtop [flags]
+
+Flags:
+      --config string        config file (default: $HOME/.chtop.yaml)
+  -h, --help                 help for chtop
+      --metrics-url string   clickhouse url for metrics in promql format
+      --queries-url string   clickhouse url for running clickhouse queries
+```
+
+Run chtop pointing to prometheus stats endpoint & http endpoint of ClickHouse.
+```
+❯ chtop --metrics-url http://localhost:9363/metrics --queries-url http://localhost:8123
 ```
 
 ## Themes

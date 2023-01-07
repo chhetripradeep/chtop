@@ -11,3 +11,7 @@ clickhousemetrics:
     - name: ClickHouseMetrics_PartsActive
     - name: ClickHouseMetrics_TCPConnection
     - name: ClickHouseProfileEvents_FileOpen
+clickhousequeries:
+  queries:
+    - name: Queries_Per_Second
+      sql: "SELECT count(*) FROM system.processes"
