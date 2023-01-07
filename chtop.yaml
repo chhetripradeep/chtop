@@ -20,4 +20,4 @@ clickhousemetrics:
 clickhousequeries:
   queries:
     - name: Number of Running Queries
-      sql: "SELECT count(*) FROM system.processes"
+      sql: "select count(*) from system.processes"
