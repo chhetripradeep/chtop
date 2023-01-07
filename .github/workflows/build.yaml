@@ -1,0 +1,38 @@
+name: Build, Test, Format and Lint
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-binaries:
+    runs-on: ubuntu-latest
+    name: Build binary
+    steps:
+      - uses: actions/checkout@v2.3.4
+
+      - uses: actions/setup-go@v2
+        with:
+          go-version: ^1.19
+
+      - name: Build binaries
+        run: make build
+
+  format-lint:
+    runs-on: ubuntu-latest
+    name: Format and lint
+    steps:
+      - uses: actions/checkout@v2.3.4
+
+      - uses: actions/setup-go@v2
+        with:
+          go-version: ^1.19
+
+      - name: Install tools
+        run: make install-tools
+
+      - name: Format
+        run: make fmt && git diff --quiet
+
+      - name: Lint
+        run: make lint

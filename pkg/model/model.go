@@ -123,13 +123,13 @@ func (m Model) View() string {
 			asciigraph.SeriesColors(m.Theme.GraphColor()),
 		)
 
-		plot += fmt.Sprintf("\n\n")
 		plot += lipgloss.JoinVertical(
 			lipgloss.Top,
 			setTitle(m.ClickHouseMetrics.Metrics[i].Name).String(),
 			graph,
 			setFooter(fmt.Sprintf("Current Value: %.2f\n\n", m.ClickHouseMetrics.Metrics[i].Latest)).String(),
 		)
+		plot += "\n"
 	}
 	return plot
 }

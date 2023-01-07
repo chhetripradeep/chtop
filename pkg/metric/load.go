@@ -6,14 +6,17 @@ import (
 
 func LoadMetrics(v *viper.Viper, first bool) (ClickHouseMetrics, error) {
 	metrics := DefaultClickHouseMetrics()
-	v.UnmarshalKey("clickhousemetrics", &metrics)
+	err := v.UnmarshalKey("clickhousemetrics", &metrics)
+	if err != nil {
+		panic("failed to unmarshal metrics section from configuration file")
+	}
 	if !first || metrics.File == "" {
 		return metrics, nil
 	}
 
 	v = viper.New()
 	v.SetConfigFile(metrics.File)
-	err := v.ReadInConfig()
+	err = v.ReadInConfig()
 	if err != nil {
 		return metrics, err
 	}
