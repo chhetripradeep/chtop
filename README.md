@@ -34,15 +34,20 @@ Usage:
   chtop [flags]
 
 Flags:
-      --config string        config file (default: $HOME/.chtop.yaml)
-  -h, --help                 help for chtop
-      --metrics-url string   clickhouse url for metrics in promql format
-      --queries-url string   clickhouse url for running clickhouse queries
+      --config string             config file (default: $HOME/.chtop.yaml)
+  -h, --help                      help for chtop
+      --metrics-url string        clickhouse url for pulling metrics in prometheus exposition format
+      --queries-database string   clickhouse database for connecting clickhouse client (default "system")
+      --queries-password string   clickhouse password for running clickhouse queries
+      --queries-url string        clickhouse url for running clickhouse queries (native protocol port)
+      --queries-username string   clickhouse username for running clickhouse queries (default "default")
 ```
 
 Run chtop pointing to prometheus stats endpoint & http endpoint of ClickHouse.
+
+Sample Run:
 ```
-❯ chtop --metrics-url http://localhost:9363/metrics --queries-url http://localhost:8123
+❯ chtop --metrics-url http://localhost:9363/metrics --queries-url localhost:9000 --config chtop.yaml
 ```
 
 ## Themes
@@ -95,6 +100,5 @@ This tool is built using [BubbleTea](https://github.com/charmbracelet/bubbletea)
 
 ## Todos
 
-- Allow to run CH queries to gather datapoints.
 - Introduce more panel types.
 - Allow to monitor CH clusters.

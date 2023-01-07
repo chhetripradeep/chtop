@@ -15,6 +15,9 @@ var (
 	cfgFile              string
 	clickhouseMetricsUrl string
 	clickhouseQueriesUrl string
+	clickhouseDatabase   string
+	clickhouseUsername   string
+	clickhousePassword   string
 )
 
 var rootCmd = &cobra.Command{
@@ -22,7 +25,7 @@ var rootCmd = &cobra.Command{
 	Short: "ClickHouse monitoring tool",
 	Long:  "Monitor your ClickHouse clusters without ever leaving your terminal",
 	Run: func(cmd *cobra.Command, _ []string) {
-		err := chtop.Run(clickhouseMetricsUrl, clickhouseQueriesUrl)
+		err := chtop.Run(clickhouseMetricsUrl, clickhouseQueriesUrl, clickhouseDatabase, clickhouseUsername, clickhousePassword)
 		if err != nil {
 			fmt.Println("Error:", err)
 			os.Exit(1)
@@ -38,8 +41,11 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default: $HOME/.chtop.yaml)")
-	rootCmd.PersistentFlags().StringVar(&clickhouseMetricsUrl, "metrics-url", "", "clickhouse url for metrics in promql format")
-	rootCmd.PersistentFlags().StringVar(&clickhouseQueriesUrl, "queries-url", "", "clickhouse url for running clickhouse queries")
+	rootCmd.PersistentFlags().StringVar(&clickhouseMetricsUrl, "metrics-url", "", "clickhouse url for pulling metrics in prometheus exposition format")
+	rootCmd.PersistentFlags().StringVar(&clickhouseQueriesUrl, "queries-url", "", "clickhouse url for running clickhouse queries (native protocol port)")
+	rootCmd.PersistentFlags().StringVar(&clickhouseDatabase, "queries-database", "system", "clickhouse database for connecting clickhouse client")
+	rootCmd.PersistentFlags().StringVar(&clickhouseUsername, "queries-username", "default", "clickhouse username for running clickhouse queries")
+	rootCmd.PersistentFlags().StringVar(&clickhousePassword, "queries-password", "", "clickhouse password for running clickhouse queries")
 }
 
 func initConfig() {

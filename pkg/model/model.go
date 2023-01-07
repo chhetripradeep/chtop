@@ -26,12 +26,15 @@ const (
 )
 
 type Model struct {
-	ClickHouseMetrics metric.ClickHouseMetrics
-	ClickHouseQueries query.ClickHouseQueries
-	Error             error
-	MetricsEndpoint   string
-	QueriesEndpoint   string
-	Theme             *theme.Theme
+	Error              error
+	Theme              *theme.Theme
+	MetricsEndpoint    string
+	QueriesEndpoint    string
+	ClickHouseDatabase string
+	ClickHouseUsername string
+	ClickHousePassword string
+	ClickHouseMetrics  metric.ClickHouseMetrics
+	ClickHouseQueries  query.ClickHouseQueries
 }
 
 type statusMsg int
@@ -87,11 +90,11 @@ func (m Model) Query(metric string) (*string, error) {
 // Execute runs a clickhouse query and returns the response
 func (m Model) Execute(sql string) (*string, error) {
 	conn := clickhouse.OpenDB(&clickhouse.Options{
-		Addr: []string{"127.0.0.1:9000"},
+		Addr: []string{m.QueriesEndpoint},
 		Auth: clickhouse.Auth{
-			Database: "system",
-			Username: "default",
-			Password: "",
+			Database: m.ClickHouseDatabase,
+			Username: m.ClickHouseUsername,
+			Password: m.ClickHousePassword,
 		},
 		Settings: clickhouse.Settings{
 			"max_execution_time": 30,
@@ -198,7 +201,7 @@ func (m Model) View() string {
 			graph,
 			setFooter(fmt.Sprintf("Current Value: %.2f\n\n", m.ClickHouseQueries.Queries[i].Latest)).String(),
 		)
-		plot += "\n"
+		plot += "\n\n"
 	}
 	return plot
 }
@@ -210,7 +213,7 @@ func setTitle(text string) lipgloss.Style {
 		Padding(0, 1).
 		Italic(false).
 		Bold(true).
-		Border(lipgloss.NormalBorder(), true, true).
+		Border(lipgloss.RoundedBorder(), true, true).
 		SetString(text)
 }
 

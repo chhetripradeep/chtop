@@ -10,28 +10,31 @@ import (
 	"github.com/chhetripradeep/chtop/pkg/theme"
 )
 
-func Run(metricsUrl, queriesUrl string) error {
-	currentTheme, err := theme.LoadTheme(viper.GetViper(), true)
+func Run(metricsUrl, queriesUrl, database, username, password string) error {
+	themes, err := theme.LoadTheme(viper.GetViper(), true)
 	if err != nil {
 		return err
 	}
 
-	currentMetrics, err := metric.LoadMetrics(viper.GetViper(), true)
+	metrics, err := metric.LoadMetrics(viper.GetViper(), true)
 	if err != nil {
 		return err
 	}
 
-	currentQueries, err := query.LoadQueries(viper.GetViper(), true)
+	queries, err := query.LoadQueries(viper.GetViper(), true)
 	if err != nil {
 		return err
 	}
 
 	m := model.Model{
-		MetricsEndpoint:   metricsUrl,
-		QueriesEndpoint:   queriesUrl,
-		ClickHouseMetrics: currentMetrics,
-		ClickHouseQueries: currentQueries,
-		Theme:             currentTheme,
+		Theme:              themes,
+		MetricsEndpoint:    metricsUrl,
+		QueriesEndpoint:    queriesUrl,
+		ClickHouseDatabase: database,
+		ClickHouseUsername: username,
+		ClickHousePassword: password,
+		ClickHouseMetrics:  metrics,
+		ClickHouseQueries:  queries,
 	}
 
 	program := tea.NewProgram(m, tea.WithAltScreen())
