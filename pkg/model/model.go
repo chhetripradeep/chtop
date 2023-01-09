@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
+	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -31,6 +32,7 @@ type Model struct {
 	Error              error
 	Ready              bool
 	Theme              *theme.Theme
+	Spinner            spinner.Model
 	Viewport           viewport.Model
 	MetricsEndpoint    string
 	QueriesEndpoint    string
@@ -177,7 +179,7 @@ func (m Model) UpdateData() tea.Cmd {
 		for i := range m.ClickHouseMetrics.Metrics {
 			value, err := m.Query(m.ClickHouseMetrics.Metrics[i].Name)
 			if err != nil {
-				fmt.Fprintln(os.Stderr, "unable to query metrics endpoint:", m.MetricsEndpoint, "for metric:", m.ClickHouseMetrics.Metrics[i].Name)
+				fmt.Fprintln(os.Stderr, "unable to query endpoint:", m.MetricsEndpoint, "for metric:", m.ClickHouseMetrics.Metrics[i].Name)
 				continue
 			}
 
@@ -192,7 +194,6 @@ func (m Model) UpdateData() tea.Cmd {
 
 		for i := range m.ClickHouseQueries.Queries {
 			value, err := m.Execute(m.ClickHouseQueries.Queries[i].Sql)
-			fmt.Fprintf(os.Stderr, *value)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, "unable to execute query:", m.ClickHouseQueries.Queries[i].Name, "at endpoint:", m.QueriesEndpoint)
 			}
@@ -212,10 +213,10 @@ func (m Model) UpdateData() tea.Cmd {
 
 // View shows the current state of the chtop
 func (m Model) View() string {
-	var plot string
+	var metricsPlot, queriesPlot, finalPlot string
 
 	if !m.Ready {
-		return "\n  Initializing..."
+		return m.Spinner.View() + "  Initializing..."
 	}
 
 	for i := range m.ClickHouseMetrics.Metrics {
@@ -230,11 +231,11 @@ func (m Model) View() string {
 			asciigraph.Caption(caption),
 		)
 
-		plot += lipgloss.JoinVertical(
+		metricsPlot += lipgloss.JoinVertical(
 			lipgloss.Top,
 			graph,
 		)
-		plot += "\n\n"
+		metricsPlot += "\n\n"
 	}
 
 	for i := range m.ClickHouseQueries.Queries {
@@ -249,13 +250,18 @@ func (m Model) View() string {
 			asciigraph.Caption(caption),
 		)
 
-		plot += lipgloss.JoinVertical(
+		queriesPlot += lipgloss.JoinVertical(
 			lipgloss.Top,
 			graph,
 		)
-		plot += "\n\n"
+		queriesPlot += "\n\n"
 	}
 
-	m.Viewport.SetContent(plot)
+	finalPlot = lipgloss.JoinHorizontal(
+		lipgloss.Left,
+		metricsPlot,
+		queriesPlot,
+	)
+	m.Viewport.SetContent(finalPlot)
 	return m.Viewport.View()
 }

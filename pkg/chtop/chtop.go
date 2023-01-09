@@ -1,7 +1,9 @@
 package chtop
 
 import (
+	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/chhetripradeep/chtop/pkg/query"
 	"github.com/spf13/viper"
 
@@ -9,6 +11,13 @@ import (
 	"github.com/chhetripradeep/chtop/pkg/model"
 	"github.com/chhetripradeep/chtop/pkg/theme"
 )
+
+func InitSpinner() spinner.Model {
+	spin := spinner.New()
+	spin.Spinner = spinner.Globe
+	spin.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	return spin
+}
 
 func Run(metricsUrl, queriesUrl, database, username, password string) error {
 	themes, err := theme.LoadTheme(viper.GetViper(), true)
@@ -27,6 +36,7 @@ func Run(metricsUrl, queriesUrl, database, username, password string) error {
 	}
 
 	m := model.Model{
+		Spinner:            InitSpinner(),
 		Theme:              themes,
 		MetricsEndpoint:    metricsUrl,
 		QueriesEndpoint:    queriesUrl,
