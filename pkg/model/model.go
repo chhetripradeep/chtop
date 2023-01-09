@@ -212,69 +212,50 @@ func (m Model) UpdateData() tea.Cmd {
 
 // View shows the current state of the chtop
 func (m Model) View() string {
+	var plot string
+
 	if !m.Ready {
 		return "\n  Initializing..."
 	}
 
-	var plot string
 	for i := range m.ClickHouseMetrics.Metrics {
+		caption := m.ClickHouseMetrics.Metrics[i].Alias + fmt.Sprintf(" (Current Value: %.2f)\n\n", m.ClickHouseMetrics.Metrics[i].Latest)
+
 		graph := asciigraph.Plot(
 			m.ClickHouseMetrics.Metrics[i].Datapoints,
 			asciigraph.Height(m.Theme.Graph.Height),
 			asciigraph.Width(m.Theme.Graph.Width),
 			asciigraph.Precision(m.Theme.Graph.Precision),
 			asciigraph.SeriesColors(m.Theme.GraphColor()),
+			asciigraph.Caption(caption),
 		)
 
 		plot += lipgloss.JoinVertical(
 			lipgloss.Top,
-			setTitle(m.ClickHouseMetrics.Metrics[i].Alias).String(),
 			graph,
-			setFooter(fmt.Sprintf("Current Value: %.2f\n\n", m.ClickHouseMetrics.Metrics[i].Latest)).String(),
 		)
 		plot += "\n\n"
 	}
 
 	for i := range m.ClickHouseQueries.Queries {
+		caption := m.ClickHouseQueries.Queries[i].Name + fmt.Sprintf(" (Current Value: %.2f)\n\n", m.ClickHouseQueries.Queries[i].Latest)
+
 		graph := asciigraph.Plot(
 			m.ClickHouseQueries.Queries[i].Datapoints,
 			asciigraph.Height(m.Theme.Graph.Height),
 			asciigraph.Width(m.Theme.Graph.Width),
 			asciigraph.Precision(m.Theme.Graph.Precision),
 			asciigraph.SeriesColors(m.Theme.GraphColor()),
+			asciigraph.Caption(caption),
 		)
 
 		plot += lipgloss.JoinVertical(
 			lipgloss.Top,
-			setTitle(m.ClickHouseQueries.Queries[i].Name).String(),
 			graph,
-			setFooter(fmt.Sprintf("Current Value: %.2f\n\n", m.ClickHouseQueries.Queries[i].Latest)).String(),
 		)
 		plot += "\n\n"
 	}
+
 	m.Viewport.SetContent(plot)
 	return m.Viewport.View()
-}
-
-func setTitle(text string) lipgloss.Style {
-	return lipgloss.NewStyle().
-		MarginLeft(20).
-		MarginRight(5).
-		Padding(0, 1).
-		Bold(true).
-		Border(lipgloss.RoundedBorder()).
-		BorderTop(true).
-		BorderLeft(true).
-		BorderRight(true).
-		BorderBottom(true).
-		SetString(text)
-}
-
-func setFooter(text string) lipgloss.Style {
-	return lipgloss.NewStyle().
-		MarginLeft(20).
-		MarginRight(5).
-		Padding(0, 1).
-		Italic(false).
-		SetString(text)
 }
