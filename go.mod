@@ -3,6 +3,8 @@ module github.com/chhetripradeep/chtop
 go 1.19
 
 require (
+	github.com/ClickHouse/clickhouse-go/v2 v2.4.3
+	github.com/charmbracelet/bubbles v0.14.0
 	github.com/charmbracelet/bubbletea v0.23.1
 	github.com/charmbracelet/lipgloss v0.6.0
 	github.com/felixge/fgprof v0.9.3
@@ -14,12 +16,8 @@ require (
 
 require (
 	github.com/ClickHouse/ch-go v0.50.0 // indirect
-	github.com/ClickHouse/clickhouse-go v1.5.4 // indirect
-	github.com/ClickHouse/clickhouse-go/v2 v2.4.3 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/aymanbagabas/go-osc52 v1.2.1 // indirect
-	github.com/charmbracelet/bubbles v0.14.0 // indirect
-	github.com/cloudflare/golz4 v0.0.0-20150217214814-ef862a3cdc58 // indirect
 	github.com/containerd/console v1.0.3 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-faster/city v1.0.1 // indirect
