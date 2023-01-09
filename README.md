@@ -88,12 +88,18 @@ clickhousequeries:
   queries:
     - name: Number of Running Queries
       sql: "select count(*) from system.processes"
+    - name: Number of Databases
+      sql: "select count(*) from system.databases"
+    - name: Number of Tables
+      sql: "select count(*) from system.tables"
+    - name: Number of Parts
+      sql: "select count(*) from system.parts"
 ```
 
 ## Sample Output
 
-<img width="795" alt="Screenshot 2023-01-09 at 6 05 37 PM" src="https://user-images.githubusercontent.com/30620077/211283759-4bd9028c-6004-4342-aaf5-3ba64e3794f8.png">
 
+<img width="1515" alt="Screenshot 2023-01-10 at 3 32 20 AM" src="https://user-images.githubusercontent.com/30620077/211392656-7a8a261d-5e4f-4ed4-9f3d-107e376eba34.png">
 
 ## Thank you
 
