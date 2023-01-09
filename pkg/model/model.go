@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/guptarohit/asciigraph"
@@ -22,13 +23,15 @@ import (
 )
 
 const (
-	defaultFps = time.Duration(30)
+	defaultFps                 = time.Duration(30)
+	useHighPerformanceRenderer = false
 )
 
 type Model struct {
 	Error              error
 	Ready              bool
 	Theme              *theme.Theme
+	Viewport           viewport.Model
 	MetricsEndpoint    string
 	QueriesEndpoint    string
 	ClickHouseDatabase string
@@ -124,6 +127,10 @@ func (m Model) Execute(sql string) (*string, error) {
 
 // Update updates the bubbletea model
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var (
+		cmd  tea.Cmd
+		cmds []tea.Cmd
+	)
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
@@ -134,6 +141,21 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		default:
 			return m, nil
 		}
+	case tea.WindowSizeMsg:
+		if !m.Ready {
+			m.Viewport = viewport.New(msg.Width, msg.Height)
+			m.Viewport.HighPerformanceRendering = useHighPerformanceRenderer
+		} else {
+			m.Viewport.Width = msg.Width
+			m.Viewport.Height = msg.Height
+		}
+		if useHighPerformanceRenderer {
+			// Render (or re-render) the whole viewport. Necessary both to
+			// initialize the viewport and when the window is resized.
+			//
+			// This is needed for high-performance rendering only.
+			cmds = append(cmds, viewport.Sync(m.Viewport))
+		}
 	case errMsg:
 		m.Error = msg
 		return m, tea.Quit
@@ -143,6 +165,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	default:
 		return m, m.UpdateData()
 	}
+	// Handle keyboard and mouse events in the viewport
+	m.Viewport, cmd = m.Viewport.Update(msg)
+	cmds = append(cmds, cmd)
+
+	return m, tea.Batch(cmds...)
 }
 
 func (m Model) UpdateData() tea.Cmd {
@@ -225,8 +252,8 @@ func (m Model) View() string {
 		)
 		plot += "\n\n"
 	}
-
-	return plot
+	m.Viewport.SetContent(plot)
+	return m.Viewport.View()
 }
 
 func setTitle(text string) lipgloss.Style {

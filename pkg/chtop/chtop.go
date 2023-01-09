@@ -37,7 +37,11 @@ func Run(metricsUrl, queriesUrl, database, username, password string) error {
 		ClickHouseQueries:  queries,
 	}
 
-	program := tea.NewProgram(m, tea.WithAltScreen())
+	program := tea.NewProgram(
+		m,
+		tea.WithAltScreen(),       // use the full size of the terminal in its "alternate screen buffer"
+		tea.WithMouseCellMotion(), // turn on mouse support so that we can track the mouse wheel
+	)
 	_, err = program.Run()
 	if err != nil {
 		return err
