@@ -92,7 +92,8 @@ clickhousequeries:
 
 ## Sample Output
 
-<img width="633" alt="Screenshot 2022-12-30 at 9 25 00 PM" src="https://user-images.githubusercontent.com/30620077/210074948-f453b33c-8158-47a3-8018-e6e59312f0a2.png">
+<img width="795" alt="Screenshot 2023-01-09 at 6 05 37 PM" src="https://user-images.githubusercontent.com/30620077/211283759-4bd9028c-6004-4342-aaf5-3ba64e3794f8.png">
+
 
 ## Thank you
 
