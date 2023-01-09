@@ -27,6 +27,7 @@ const (
 
 type Model struct {
 	Error              error
+	Ready              bool
 	Theme              *theme.Theme
 	MetricsEndpoint    string
 	QueriesEndpoint    string
@@ -38,6 +39,8 @@ type Model struct {
 }
 
 type statusMsg int
+
+type dataMsg int
 
 type errMsg struct {
 	err error
@@ -134,28 +137,60 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case errMsg:
 		m.Error = msg
 		return m, tea.Quit
+	case dataMsg:
+		m.Ready = true
+		return m, m.UpdateData()
 	default:
-		return m, tick()
+		return m, m.UpdateData()
 	}
+}
+
+func (m Model) UpdateData() tea.Cmd {
+	return tea.Tick(time.Minute/defaultFps, func(t time.Time) tea.Msg {
+		for i := range m.ClickHouseMetrics.Metrics {
+			value, err := m.Query(m.ClickHouseMetrics.Metrics[i].Name)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "unable to query metrics endpoint:", m.MetricsEndpoint, "for metric:", m.ClickHouseMetrics.Metrics[i].Name)
+				continue
+			}
+
+			floatValue, err := strconv.ParseFloat(strings.TrimSpace(*value), 64)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "unable to parse value for metric:", m.ClickHouseMetrics.Metrics[i].Name)
+				continue
+			}
+
+			m.ClickHouseMetrics.Metrics[i].Update(floatValue)
+		}
+
+		for i := range m.ClickHouseQueries.Queries {
+			value, err := m.Execute(m.ClickHouseQueries.Queries[i].Sql)
+			fmt.Fprintf(os.Stderr, *value)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "unable to execute query:", m.ClickHouseQueries.Queries[i].Name, "at endpoint:", m.QueriesEndpoint)
+			}
+
+			floatValue, err := strconv.ParseFloat(strings.TrimSpace(*value), 64)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "unable to parse value for metric:", m.ClickHouseQueries.Queries[i].Name)
+				continue
+			}
+
+			m.ClickHouseQueries.Queries[i].Update(floatValue)
+		}
+
+		return dataMsg(1)
+	})
 }
 
 // View shows the current state of the chtop
 func (m Model) View() string {
+	if !m.Ready {
+		return "\n  Initializing..."
+	}
+
 	var plot string
 	for i := range m.ClickHouseMetrics.Metrics {
-		value, err := m.Query(m.ClickHouseMetrics.Metrics[i].Name)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "unable to query metrics endpoint:", m.MetricsEndpoint, "for metric:", m.ClickHouseMetrics.Metrics[i].Name)
-			continue
-		}
-
-		floatValue, err := strconv.ParseFloat(strings.TrimSpace(*value), 64)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "unable to parse value for metric:", m.ClickHouseMetrics.Metrics[i].Name)
-			continue
-		}
-
-		m.ClickHouseMetrics.Metrics[i].Update(floatValue)
 		graph := asciigraph.Plot(
 			m.ClickHouseMetrics.Metrics[i].Datapoints,
 			asciigraph.Height(m.Theme.Graph.Height),
@@ -174,19 +209,6 @@ func (m Model) View() string {
 	}
 
 	for i := range m.ClickHouseQueries.Queries {
-		value, err := m.Execute(m.ClickHouseQueries.Queries[i].Sql)
-		fmt.Fprintf(os.Stderr, *value)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "unable to execute query:", m.ClickHouseQueries.Queries[i].Name, "at endpoint:", m.QueriesEndpoint)
-		}
-
-		floatValue, err := strconv.ParseFloat(strings.TrimSpace(*value), 64)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "unable to parse value for metric:", m.ClickHouseQueries.Queries[i].Name)
-			continue
-		}
-
-		m.ClickHouseQueries.Queries[i].Update(floatValue)
 		graph := asciigraph.Plot(
 			m.ClickHouseQueries.Queries[i].Datapoints,
 			asciigraph.Height(m.Theme.Graph.Height),
@@ -203,6 +225,7 @@ func (m Model) View() string {
 		)
 		plot += "\n\n"
 	}
+
 	return plot
 }
 
@@ -211,9 +234,12 @@ func setTitle(text string) lipgloss.Style {
 		MarginLeft(20).
 		MarginRight(5).
 		Padding(0, 1).
-		Italic(false).
 		Bold(true).
-		Border(lipgloss.RoundedBorder(), true, true).
+		Border(lipgloss.RoundedBorder()).
+		BorderTop(true).
+		BorderLeft(true).
+		BorderRight(true).
+		BorderBottom(true).
 		SetString(text)
 }
 
@@ -224,14 +250,4 @@ func setFooter(text string) lipgloss.Style {
 		Padding(0, 1).
 		Italic(false).
 		SetString(text)
-}
-
-type tickMsg struct {
-	Time time.Time
-}
-
-func tick() tea.Cmd {
-	return tea.Tick(time.Minute/defaultFps, func(t time.Time) tea.Msg {
-		return tickMsg{Time: t}
-	})
 }
