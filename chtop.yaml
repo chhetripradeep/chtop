@@ -21,3 +21,9 @@ clickhousequeries:
   queries:
     - name: Number of Running Queries
       sql: "select count(*) from system.processes"
+    - name: Number of Databases
+      sql: "select count(*) from system.databases"
+    - name: Number of Tables
+      sql: "select count(*) from system.tables"
+    - name: Number of Parts
+      sql: "select count(*) from system.parts"

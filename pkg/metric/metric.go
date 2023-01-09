@@ -7,13 +7,7 @@ type ClickHouseMetrics struct {
 
 func DefaultClickHouseMetrics() ClickHouseMetrics {
 	return ClickHouseMetrics{
-		Metrics: []Metric{
-			NewMetric("ClickHouseProfileEvents_Query", "Total Queries"),
-			NewMetric("ClickHouseProfileEvents_SelectQuery", "Total Select Queries"),
-			NewMetric("ClickHouseProfileEvents_InsertQuery", "Total Insert Queries"),
-			NewMetric("ClickHouseMetrics_PartsActive", "Number of Active Parts"),
-			NewMetric("ClickHouseMetrics_TCPConnection", "Number of Open File Descriptors"),
-		},
+		Metrics: []Metric{},
 	}
 }
 
