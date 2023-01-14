@@ -1,7 +1,8 @@
 theme:
+  border: violet
   graph:
     color: red
-    height: 4
+    height: 5
     precision: 1
 clickhousemetrics:
   metrics:
