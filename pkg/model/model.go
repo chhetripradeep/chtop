@@ -21,6 +21,7 @@ import (
 	"github.com/chhetripradeep/chtop/pkg/metric"
 	"github.com/chhetripradeep/chtop/pkg/query"
 	"github.com/chhetripradeep/chtop/pkg/theme"
+	"github.com/chhetripradeep/chtop/pkg/utils"
 )
 
 const (
@@ -151,6 +152,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.Viewport.Width = msg.Width
 			m.Viewport.Height = msg.Height
 		}
+		hex := utils.ColorNameToHex(m.Theme.Border)
+		m.Viewport.Style = lipgloss.NewStyle().
+			BorderStyle(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color(hex)).
+			Padding(2, 2, 2, 2)
 		if useHighPerformanceRenderer {
 			// Render (or re-render) the whole viewport. Necessary both to
 			// initialize the viewport and when the window is resized.

@@ -5,8 +5,9 @@ import (
 )
 
 type Theme struct {
-	File  string `json:"file" toml:"file" yaml:"file"`
-	Graph Graph  `json:"graph" toml:"graph" yaml:"graph"`
+	Border string `json:"border" toml:"border" yaml:"border"`
+	File   string `json:"file" toml:"file" yaml:"file"`
+	Graph  Graph  `json:"graph" toml:"graph" yaml:"graph"`
 }
 
 type Graph struct {
@@ -18,6 +19,7 @@ type Graph struct {
 
 func DefaultTheme() *Theme {
 	return &Theme{
+		Border: "blue",
 		Graph: Graph{
 			Color:     "blue",
 			Height:    5,
