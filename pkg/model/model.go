@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -56,7 +57,8 @@ func (e errMsg) Error() string {
 	return e.err.Error()
 }
 
-func check(url string) tea.Cmd {
+// checkUrl checks the http endpoint
+func checkUrl(url string) tea.Cmd {
 	return func() tea.Msg {
 		resp, err := http.Get(url)
 		if err != nil {
@@ -67,9 +69,27 @@ func check(url string) tea.Cmd {
 	}
 }
 
+// checkEndpoint checks the tcp endpoint
+func checkEndpoint(endpoint string) tea.Cmd {
+	return func() tea.Msg {
+		conn, err := net.Dial("tcp", endpoint)
+		if err != nil {
+			return errMsg{err}
+		}
+		defer conn.Close()
+		return statusMsg(200)
+	}
+}
+
 // Init inits the bubbletea model for use
 func (m Model) Init() tea.Cmd {
-	return check(m.MetricsEndpoint)
+	if m.MetricsEndpoint != "" {
+		return checkUrl(m.MetricsEndpoint)
+	}
+	if m.QueriesEndpoint != "" {
+		return checkEndpoint(m.QueriesEndpoint)
+	}
+	return nil
 }
 
 // Query hits the prometheus exporter endpoint of clickhouse
@@ -180,51 +200,56 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
+// UpdateMetricsData updates the data from prometheus exporter's metrics endpoint
+func (m Model) UpdateMetricsData() {
+	for i := range m.ClickHouseMetrics.Metrics {
+		value, err := m.Query(m.ClickHouseMetrics.Metrics[i].Name)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "unable to query endpoint:", m.MetricsEndpoint, "for metric:", m.ClickHouseMetrics.Metrics[i].Name)
+			continue
+		}
+
+		floatValue, err := strconv.ParseFloat(strings.TrimSpace(*value), 64)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "unable to parse value for metric:", m.ClickHouseMetrics.Metrics[i].Name)
+			continue
+		}
+		m.ClickHouseMetrics.Metrics[i].Update(floatValue)
+	}
+}
+
+// UpdateQueriesData updates the data from clickhouse queries output
+func (m Model) UpdateQueriesData() {
+	for i := range m.ClickHouseQueries.Queries {
+		value, err := m.Execute(m.ClickHouseQueries.Queries[i].Sql)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "unable to execute query:", m.ClickHouseQueries.Queries[i].Name, "at endpoint:", m.QueriesEndpoint)
+		}
+
+		floatValue, err := strconv.ParseFloat(strings.TrimSpace(*value), 64)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "unable to parse value for metric:", m.ClickHouseQueries.Queries[i].Name)
+			continue
+		}
+		m.ClickHouseQueries.Queries[i].Update(floatValue)
+	}
+}
+
+// UpdateData updates the complete data
 func (m Model) UpdateData() tea.Cmd {
 	return tea.Tick(time.Minute/defaultFps, func(t time.Time) tea.Msg {
-		for i := range m.ClickHouseMetrics.Metrics {
-			value, err := m.Query(m.ClickHouseMetrics.Metrics[i].Name)
-			if err != nil {
-				fmt.Fprintln(os.Stderr, "unable to query endpoint:", m.MetricsEndpoint, "for metric:", m.ClickHouseMetrics.Metrics[i].Name)
-				continue
-			}
-
-			floatValue, err := strconv.ParseFloat(strings.TrimSpace(*value), 64)
-			if err != nil {
-				fmt.Fprintln(os.Stderr, "unable to parse value for metric:", m.ClickHouseMetrics.Metrics[i].Name)
-				continue
-			}
-
-			m.ClickHouseMetrics.Metrics[i].Update(floatValue)
+		if m.MetricsEndpoint != "" {
+			m.UpdateMetricsData()
 		}
-
-		for i := range m.ClickHouseQueries.Queries {
-			value, err := m.Execute(m.ClickHouseQueries.Queries[i].Sql)
-			if err != nil {
-				fmt.Fprintln(os.Stderr, "unable to execute query:", m.ClickHouseQueries.Queries[i].Name, "at endpoint:", m.QueriesEndpoint)
-			}
-
-			floatValue, err := strconv.ParseFloat(strings.TrimSpace(*value), 64)
-			if err != nil {
-				fmt.Fprintln(os.Stderr, "unable to parse value for metric:", m.ClickHouseQueries.Queries[i].Name)
-				continue
-			}
-
-			m.ClickHouseQueries.Queries[i].Update(floatValue)
+		if m.QueriesEndpoint != "" {
+			m.UpdateQueriesData()
 		}
-
 		return dataMsg(1)
 	})
 }
 
-// View shows the current state of the chtop
-func (m Model) View() string {
-	var metricsPlot, queriesPlot, finalPlot string
-
-	if !m.Ready {
-		return m.Spinner.View() + "  Initializing..."
-	}
-
+func (m Model) ViewMetricsData() string {
+	var plot string
 	for i := range m.ClickHouseMetrics.Metrics {
 		caption := m.ClickHouseMetrics.Metrics[i].Alias + fmt.Sprintf(" (Current Value: %.2f)\n\n", m.ClickHouseMetrics.Metrics[i].Latest)
 
@@ -237,13 +262,17 @@ func (m Model) View() string {
 			asciigraph.Caption(caption),
 		)
 
-		metricsPlot += lipgloss.JoinVertical(
+		plot += lipgloss.JoinVertical(
 			lipgloss.Top,
 			graph,
 		)
-		metricsPlot += "\n\n"
+		plot += "\n\n"
 	}
+	return plot
+}
 
+func (m Model) ViewQueriesData() string {
+	var plot string
 	for i := range m.ClickHouseQueries.Queries {
 		caption := m.ClickHouseQueries.Queries[i].Name + fmt.Sprintf(" (Current Value: %.2f)\n\n", m.ClickHouseQueries.Queries[i].Latest)
 
@@ -256,11 +285,29 @@ func (m Model) View() string {
 			asciigraph.Caption(caption),
 		)
 
-		queriesPlot += lipgloss.JoinVertical(
+		plot += lipgloss.JoinVertical(
 			lipgloss.Top,
 			graph,
 		)
-		queriesPlot += "\n\n"
+		plot += "\n\n"
+	}
+	return plot
+}
+
+// View shows the current state of the complete data
+func (m Model) View() string {
+	var metricsPlot, queriesPlot, finalPlot string
+
+	// If we don't have data to show in view
+	if !m.Ready {
+		return m.Spinner.View() + "  Initializing..."
+	}
+
+	if m.MetricsEndpoint != "" {
+		metricsPlot = m.ViewMetricsData()
+	}
+	if m.QueriesEndpoint != "" {
+		queriesPlot = m.ViewQueriesData()
 	}
 
 	finalPlot = lipgloss.JoinHorizontal(

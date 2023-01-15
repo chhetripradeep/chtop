@@ -34,13 +34,13 @@ Usage:
   chtop [flags]
 
 Flags:
-      --config string             config file (default: $HOME/.chtop.yaml)
+  -c, --config string             path of the config file (default: $HOME/.chtop.yaml)
   -h, --help                      help for chtop
-      --metrics-url string        clickhouse url for pulling metrics in prometheus exposition format
-      --queries-database string   clickhouse database for connecting clickhouse client (default "system")
-      --queries-password string   clickhouse password for running clickhouse queries
-      --queries-url string        clickhouse url for running clickhouse queries (native protocol port)
-      --queries-username string   clickhouse username for running clickhouse queries (default "default")
+  -m, --metrics-url string        clickhouse url for pulling metrics in prometheus exposition format
+  -d, --queries-database string   clickhouse database for connecting from clickhouse client (default "system")
+  -p, --queries-password string   clickhouse password of the provided clickhouse user for running clickhouse queries
+  -q, --queries-url string        clickhouse endpoint for running clickhouse queries via native protocol
+  -u, --queries-username string   clickhouse username for running clickhouse queries (default "default")
 ```
 
 Run chtop pointing to prometheus stats endpoint & http endpoint of ClickHouse.

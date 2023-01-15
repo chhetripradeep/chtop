@@ -4,18 +4,19 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/chhetripradeep/chtop/pkg/query"
 	"github.com/spf13/viper"
 
 	"github.com/chhetripradeep/chtop/pkg/metric"
 	"github.com/chhetripradeep/chtop/pkg/model"
+	"github.com/chhetripradeep/chtop/pkg/query"
 	"github.com/chhetripradeep/chtop/pkg/theme"
+	"github.com/chhetripradeep/chtop/pkg/utils"
 )
 
 func InitSpinner() spinner.Model {
 	spin := spinner.New()
 	spin.Spinner = spinner.Globe
-	spin.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	spin.Style = lipgloss.NewStyle().Foreground(lipgloss.Color(utils.ColorNameToHex("magenta")))
 	return spin
 }
 
