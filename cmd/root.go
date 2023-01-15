@@ -40,12 +40,12 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default: $HOME/.chtop.yaml)")
-	rootCmd.PersistentFlags().StringVar(&clickhouseMetricsUrl, "metrics-url", "", "clickhouse url for pulling metrics in prometheus exposition format")
-	rootCmd.PersistentFlags().StringVar(&clickhouseQueriesUrl, "queries-url", "", "clickhouse url for running clickhouse queries (native protocol port)")
-	rootCmd.PersistentFlags().StringVar(&clickhouseDatabase, "queries-database", "system", "clickhouse database for connecting clickhouse client")
-	rootCmd.PersistentFlags().StringVar(&clickhouseUsername, "queries-username", "default", "clickhouse username for running clickhouse queries")
-	rootCmd.PersistentFlags().StringVar(&clickhousePassword, "queries-password", "", "clickhouse password for running clickhouse queries")
+	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "path of the config file (default: $HOME/.chtop.yaml)")
+	rootCmd.PersistentFlags().StringVarP(&clickhouseMetricsUrl, "metrics-url", "m", "", "clickhouse url for pulling metrics in prometheus exposition format")
+	rootCmd.PersistentFlags().StringVarP(&clickhouseQueriesUrl, "queries-url", "q", "", "clickhouse endpoint for running clickhouse queries via native protocol")
+	rootCmd.PersistentFlags().StringVarP(&clickhouseDatabase, "queries-database", "d", "system", "clickhouse database for connecting from clickhouse client")
+	rootCmd.PersistentFlags().StringVarP(&clickhouseUsername, "queries-username", "u", "default", "clickhouse username for running clickhouse queries")
+	rootCmd.PersistentFlags().StringVarP(&clickhousePassword, "queries-password", "p", "", "clickhouse password of the provided clickhouse user for running clickhouse queries")
 }
 
 func initConfig() {
