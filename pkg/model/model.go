@@ -248,6 +248,7 @@ func (m Model) UpdateData() tea.Cmd {
 	})
 }
 
+// ViewMetricsData shows the current state of the clickhouse metrics data
 func (m Model) ViewMetricsData() string {
 	var plot string
 	for i := range m.ClickHouseMetrics.Metrics {
@@ -271,6 +272,7 @@ func (m Model) ViewMetricsData() string {
 	return plot
 }
 
+// ViewQueriesData shows the current state of the clickhouse queries data
 func (m Model) ViewQueriesData() string {
 	var plot string
 	for i := range m.ClickHouseQueries.Queries {
