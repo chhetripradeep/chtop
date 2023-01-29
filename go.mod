@@ -16,7 +16,7 @@ require (
 )
 
 require (
-	github.com/ClickHouse/ch-go v0.51.1 // indirect
+	github.com/ClickHouse/ch-go v0.51.2 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/aymanbagabas/go-osc52 v1.2.1 // indirect
 	github.com/containerd/console v1.0.3 // indirect
