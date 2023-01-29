@@ -10,8 +10,11 @@ Show live statistics for monitoring your ClickHouse node.
 
 ## Usage
 
-It pulls metrics from the prometheus exporter endpoint of ClickHouse, so
-make sure that you have enabled prometheus exporter endpoint for ClickHouse.
+It can populate graphs either by pulling metrics from the prometheus exporter 
+endpoint of ClickHouse or by running sql queries on ClickHouse native protocol endpoint.
+
+To enable prometheus exporter endpoint for ClickHouse, you will need to add following
+ClickHouse server configuration:
 
 ```
 <clickhouse>
