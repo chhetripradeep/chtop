@@ -1,0 +1,150 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "chtop settings",
+    "description": "chtop settings\n",
+    "type": "object",
+    "properties": {
+        "theme": {
+            "title": "theme",
+            "description": "Theme settings",
+            "type": "object",
+            "properties": {
+                "border": {
+                    "title": "border",
+                    "description": "A border",
+                    "type": "string",
+                    "minLength": 1,
+                    "pattern": "[^ ]",
+                    "default": "violet"
+                },
+                "graph": {
+                    "title": "graphics",
+                    "description": "Graphics settings",
+                    "type": "object",
+                    "properties": {
+                        "color": {
+                            "title": "color",
+                            "description": "A color",
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "[^ ]",
+                            "default": "red"
+                        },
+                        "height": {
+                            "title": "height",
+                            "description": "A height",
+                            "type": "integer",
+                            "exclusiveMinimum": 0,
+                            "default": 5
+                        },
+                        "precision": {
+                            "title": "precision",
+                            "description": "A precision",
+                            "type": "integer",
+                            "exclusiveMinimum": 0,
+                            "default": 1
+                        }
+                    },
+                    "minProperties": 1,
+                    "additionalProperties": false
+                }
+            },
+            "minProperties": 1,
+            "additionalProperties": false
+        },
+        "clickhousemetrics": {
+            "title": "clickhouse metrics",
+            "description": "clickhousemetrics metrics",
+            "type": "object",
+            "properties": {
+                "metrics": {
+                    "title": "metrics",
+                    "description": "A metric",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "alias",
+                            "name"
+                        ],
+                        "properties": {
+                            "alias": {
+                                "title": "alias",
+                                "description": "An alias",
+                                "type": "string",
+                                "minLength": 1,
+                                "pattern": "[^ ]",
+                                "examples": [
+                                    "Total Queries"
+                                ]
+                            },
+                            "name": {
+                                "title": "name",
+                                "description": "A name",
+                                "type": "string",
+                                "minLength": 1,
+                                "pattern": "[^ ]",
+                                "examples": [
+                                    "ClickHouseProfileEvents_Query"
+                                ]
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    "uniqueItems": false,
+                    "minItems": 1
+                }
+            },
+            "minProperties": 1,
+            "additionalProperties": false
+        },
+        "clickhousequeries": {
+            "title": "clickhouse queries",
+            "description": "clickhousemetrics queries",
+            "type": "object",
+            "properties": {
+                "metrics": {
+                    "title": "metrics",
+                    "description": "A metric",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "name",
+                            "sql"
+                        ],
+                        "properties": {
+                            "name": {
+                                "title": "name",
+                                "description": "A name",
+                                "type": "string",
+                                "minLength": 1,
+                                "pattern": "[^ ]",
+                                "examples": [
+                                    "Number of Running Queries"
+                                ]
+                            },
+                            "sql": {
+                                "title": "sql",
+                                "description": "An SQL",
+                                "type": "string",
+                                "minLength": 1,
+                                "pattern": "[^ ]",
+                                "examples": [
+                                    "select count(*) from system.processes"
+                                ]
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    "uniqueItems": false,
+                    "minItems": 1
+                }
+            },
+            "minProperties": 1,
+            "additionalProperties": false
+        }
+    },
+    "minProperties": 1,
+    "additionalProperties": false
+}
