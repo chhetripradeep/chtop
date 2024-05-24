@@ -1,17 +1,17 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "chtop settings",
-    "description": "chtop settings\n",
+    "description": "chtop settings\nhttps://github.com/chhetripradeep/chtop?tab=readme-ov-file#themes",
     "type": "object",
     "properties": {
         "theme": {
             "title": "theme",
-            "description": "Theme settings",
+            "description": "Theme settings\nhttps://github.com/chhetripradeep/chtop?tab=readme-ov-file#themes",
             "type": "object",
             "properties": {
                 "border": {
                     "title": "border",
-                    "description": "A border",
+                    "description": "A border\nhttps://github.com/chhetripradeep/chtop?tab=readme-ov-file#themes",
                     "type": "string",
                     "minLength": 1,
                     "pattern": "[^ ]",
@@ -19,12 +19,12 @@
                 },
                 "graph": {
                     "title": "graphics",
-                    "description": "Graphics settings",
+                    "description": "Graphics settings\nhttps://github.com/chhetripradeep/chtop?tab=readme-ov-file#themes",
                     "type": "object",
                     "properties": {
                         "color": {
                             "title": "color",
-                            "description": "A color",
+                            "description": "A color\nhttps://github.com/chhetripradeep/chtop?tab=readme-ov-file#themes",
                             "type": "string",
                             "minLength": 1,
                             "pattern": "[^ ]",
@@ -32,14 +32,14 @@
                         },
                         "height": {
                             "title": "height",
-                            "description": "A height",
+                            "description": "A height\nhttps://github.com/chhetripradeep/chtop?tab=readme-ov-file#themes",
                             "type": "integer",
                             "exclusiveMinimum": 0,
                             "default": 5
                         },
                         "precision": {
                             "title": "precision",
-                            "description": "A precision",
+                            "description": "A precision\nhttps://github.com/chhetripradeep/chtop?tab=readme-ov-file#themes",
                             "type": "integer",
                             "exclusiveMinimum": 0,
                             "default": 1
@@ -54,12 +54,12 @@
         },
         "clickhousemetrics": {
             "title": "clickhouse metrics",
-            "description": "clickhousemetrics metrics",
+            "description": "clickhousemetrics metrics\nhttps://github.com/chhetripradeep/chtop?tab=readme-ov-file#metrics",
             "type": "object",
             "properties": {
                 "metrics": {
                     "title": "metrics",
-                    "description": "A metric",
+                    "description": "A metric\nhttps://github.com/chhetripradeep/chtop?tab=readme-ov-file#metrics",
                     "type": "array",
                     "items": {
                         "type": "object",
@@ -70,7 +70,7 @@
                         "properties": {
                             "alias": {
                                 "title": "alias",
-                                "description": "An alias",
+                                "description": "An alias\nhttps://github.com/chhetripradeep/chtop?tab=readme-ov-file#metrics",
                                 "type": "string",
                                 "minLength": 1,
                                 "pattern": "[^ ]",
@@ -80,7 +80,7 @@
                             },
                             "name": {
                                 "title": "name",
-                                "description": "A name",
+                                "description": "A name\nhttps://github.com/chhetripradeep/chtop?tab=readme-ov-file#metrics",
                                 "type": "string",
                                 "minLength": 1,
                                 "pattern": "[^ ]",
@@ -100,12 +100,12 @@
         },
         "clickhousequeries": {
             "title": "clickhouse queries",
-            "description": "clickhousemetrics queries",
+            "description": "clickhousemetrics queries\nhttps://github.com/chhetripradeep/chtop?tab=readme-ov-file#metrics",
             "type": "object",
             "properties": {
                 "metrics": {
                     "title": "metrics",
-                    "description": "A metric",
+                    "description": "A metric\nhttps://github.com/chhetripradeep/chtop?tab=readme-ov-file#metrics",
                     "type": "array",
                     "items": {
                         "type": "object",
@@ -116,7 +116,7 @@
                         "properties": {
                             "name": {
                                 "title": "name",
-                                "description": "A name",
+                                "description": "A name\nhttps://github.com/chhetripradeep/chtop?tab=readme-ov-file#metrics",
                                 "type": "string",
                                 "minLength": 1,
                                 "pattern": "[^ ]",
@@ -126,7 +126,7 @@
                             },
                             "sql": {
                                 "title": "sql",
-                                "description": "An SQL",
+                                "description": "An SQL\nhttps://github.com/chhetripradeep/chtop?tab=readme-ov-file#metrics",
                                 "type": "string",
                                 "minLength": 1,
                                 "pattern": "[^ ]",
